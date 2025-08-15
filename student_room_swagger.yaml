@@ -1,0 +1,482 @@
+openapi: 3.0.0
+info:
+  title: Student Room Management API
+  description: REST API for managing students and rooms, including CRUD operations, searching students by room, moving students, and pagination.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000/v1
+
+paths:
+  /rooms:
+    get:
+      summary: Retrieve a list of rooms (with pagination)
+      parameters:
+        - name: page
+          in: query
+          description: Page number 
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of rooms
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rooms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Room'
+                  total:
+                    type: integer
+              example:
+                rooms:
+                  - id: 1
+                    name: "Room 101"
+                  - id: 2
+                    name: "Room 102"
+                total: 2
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a new room
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomCreate'
+      responses:
+        '201':
+          description: Room created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+              example:
+                id: 3
+                name: "Room 103"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /rooms/{roomId}:
+    get:
+      summary: Retrieve information about a room
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Room information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+              example:
+                id: 1
+                name: "Room 101"
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update a room
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomUpdate'
+      responses:
+        '200':
+          description: Room updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+              example:
+                id: 1
+                name: "Updated Room 101"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a room
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Room deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'  
+
+  /rooms/{roomId}/students:
+    get:
+      summary: Retrieve a list of students in a specific room (with pagination)
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: Number of items
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  students:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Student'
+                  total:
+                    type: integer
+              example:
+                students:
+                  - id: 1
+                    name: "John Doe"
+                    roomId: 1
+                  - id: 2
+                    name: "Jane Smith"
+                    roomId: 1
+                total: 2
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /students:
+    get:
+      summary: Retrieve a list of students (with pagination)
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: Number of items
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  students:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Student'
+                  total:
+                    type: integer
+              example:
+                students:
+                  - id: 1
+                    name: "John Doe"
+                    roomId: 1
+                total: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      summary: Create a new student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentCreate'
+      responses:
+        '201':
+          description: Student created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+              example:
+                id: 3
+                name: "New Student"
+                roomId: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'  
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /students/{studentId}:
+    get:
+      summary: Retrieve information about a student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Student information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+              example:
+                id: 1
+                name: "John Doe"
+                roomId: 1
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update a student (including changing rooms)
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentUpdate'
+      responses:
+        '200':
+          description: Student updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+              example:
+                id: 1
+                name: "Updated John"
+                roomId: 2
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a student
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Student deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /students/{studentId}/move:
+    patch:
+      summary: Move a student to another room (special mechanism)
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentMove'
+      responses:
+        '200':
+          description: Student moved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+              example:
+                id: 1
+                name: "John Doe"
+                roomId: 2
+        '400':
+          $ref: '#/components/responses/BadRequest'  # For example, if the new room does not exist
+        '404':
+          $ref: '#/components/responses/NotFound'  # Student or room not found
+        '409':
+          $ref: '#/components/responses/Conflict'  # For example, if the room is full (hypothetical scenario)
+
+components:
+  schemas:
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    RoomCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    RoomUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sex:
+          type: string
+        birthday:
+          type: string
+          format: date
+          example: "2005-05-22"
+        roomId:
+          type: integer
+    StudentCreate:
+      type: object
+      required:
+        - name
+        - sex
+        - birthday
+        - roomId
+      properties:
+        name:
+          type: string
+        sex:
+          type: string
+        birthday:
+          type: string
+          format: date
+          example: "2005-05-22"
+        roomId:
+          type: integer
+    StudentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        sex:
+          type: string
+        birthday:
+          type: string
+          format: date
+          example: "2005-05-22"
+        roomId:
+          type: integer
+    StudentMove:
+      type: object
+      required:
+        - roomId
+      properties:
+        roomId:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: Invalid request (e.g., incorrect parameters or data)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: string
+          example:
+            error: "Bad Request"
+            details: "Invalid roomId: must be a positive integer"
+    NotFound:
+      description: Resource not found (e.g., student or room with the given ID does not exist)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: string
+          example:
+            error: "Not Found"
+            details: "Room with ID 999 does not exist"
+    Conflict:
+      description: Conflict (e.g., cannot delete a room with students or move to a full room)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: string
+          example:
+            error: "Conflict"
+            details: "Room is full or has active students"
+    InternalServerError:
+      description: Internal server error (e.g., database connection issue)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              details:
+                type: string
+          example:
+            error: "Internal Server Error"
+            details: "Database connection failed"
